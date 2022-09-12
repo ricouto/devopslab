@@ -5,23 +5,55 @@ on:
     branches:
       - main
 
-  workflow_dispatch: 
+  workflow_dispatch:
 
 jobs:
-
   build-and-test:
     runs-on: ubuntu-latest
     steps:
-        - name: Checkout Repo
-          uses: actions/checkout@v2
-  
-        - name: Setup Python
-          uses: actions/setup-python@v2
-          with:
-           python-version: 3.7.11
+      - name: Checkout Repo
+        uses: actions/checkout@v2
 
-        - name: Install Requirements
-          run: pip install -r requirements.txt
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.7.11
 
-        - name: Run Tests
-          run: python -m unittest -v test
+      - name: Install Requirements
+        run: pip install -r requirements.txt
+
+      - name: Run Tests
+        run: python -m unittest -v test
+
+  deploy-to-heroku:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Heroku Login
+        run: |
+          cat > ~/.netrc <<EOF
+            machine api.heroku.com
+              login $HEROKU_EMAIL
+              password $HEROKU_API_KEY
+            machine git.heroku.com
+              login $HEROKU_EMAIL
+              password $HEROKU_API_KEY
+          EOF
+        env: 
+          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+          HEROKU_EMAIL: ${{ secrets.HEROKU_EMAIL }}
+
+      - name: Add Heroku Remote
+        run: | 
+          heroku git:remote --app HEROKU_API_NAME
+        env:
+          HEROKU_API_NAME: ${{ secrets.HEROKU_API_NAME }}
+
+      - name: Deploy to Heroku
+        run: |
+          git push heroku HEAD:main --force
