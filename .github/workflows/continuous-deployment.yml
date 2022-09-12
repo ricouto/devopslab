@@ -13,10 +13,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
         - name: Checkout Repo
-          uses: actions/chechout@v2
+          uses: Actions/chechout@v2
   
         - name: Setup Python
-          uses: actions/setup-python@v2
+          uses: Actions/setup-python@v2
           with:
            python-version: 3.7.11
 
